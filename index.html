@@ -105,7 +105,7 @@
 
 <body>
   <header>
-    <h2>Tabungan hp</h2>
+    <h2>Tabungan HP</h2>
   </header>
   <table border="1">
     <thead>
@@ -132,15 +132,30 @@
   </footer>
 
   <script>
+    // Fungsi untuk memformat uang dengan "Rp" dan titik sebagai pemisah ribuan
+    function formatRupiah(angka) {
+      return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
     // Fungsi untuk menyimpan data ke localStorage
     function saveToLocalStorage(data) {
-      localStorage.setItem('tabunganData', JSON.stringify(data));
+      try {
+        localStorage.setItem('tabunganData', JSON.stringify(data));
+      } catch (e) {
+        alert('Penyimpanan data gagal!');
+        console.error(e);
+      }
     }
 
     // Fungsi untuk mengambil data dari localStorage
     function getFromLocalStorage() {
-      const data = localStorage.getItem('tabunganData');
-      return data ? JSON.parse(data) : [];
+      try {
+        const data = localStorage.getItem('tabunganData');
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        console.error('Gagal mengambil data dari localStorage:', e);
+        return [];
+      }
     }
 
     // Fungsi untuk render data ke tabel
@@ -153,15 +168,16 @@
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
           <td class="itemcenter">${item.date}</td>
-          <td class="itemcenter">${item.before}</td>
-          <td class="itemcenter">${item.after}</td>
-          <td class="itemcenter">${item.result}</td>
-          <td class="btncenter"><button class="delete-btn" onclick="deleteRow(${index})">Delete</button></td>
+          <td class="itemcenter">${formatRupiah(item.before)}</td>
+          <td class="itemcenter">${formatRupiah(item.after)}</td>
+          <td class="itemcenter">${formatRupiah(item.result)}</td>
+          <td class="btncenter"><button class="delete-btn" onclick="deleteRow(${index})">Hapus</button></td>
         `;
         content.appendChild(newRow);
       });
     }
 
+    // Fungsi untuk menambah data tabungan
     function saving() {
       const before = document.getElementById('inputBefore');
       const after = document.getElementById('inputAfter');
@@ -175,6 +191,12 @@
       // Konversi nilai input ke angka
       const beforeValue = parseFloat(before.value);
       const afterValue = parseFloat(after.value);
+
+      if (beforeValue < 0 || afterValue < 0) {
+        alert('Nilai tidak boleh negatif!');
+        return;
+      }
+
       const result = beforeValue + afterValue;
 
       // Mendapatkan tanggal sekarang
@@ -200,6 +222,7 @@
       after.value = '';
     }
 
+    // Fungsi untuk menghapus baris data
     function deleteRow(index) {
       const data = getFromLocalStorage();
       data.splice(index, 1); // Hapus elemen berdasarkan index
